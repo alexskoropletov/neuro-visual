@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+*.mp4
+*.webm
+*.webp
+*.mkv
+output/scenes.json
+output/scenes/*
+!output/scenes/.gitkeep
+.run/
+ComfyUI/
+models/

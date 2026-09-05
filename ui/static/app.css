@@ -1,0 +1,238 @@
+:root {
+  --bg: #12110f;
+  --panel: #1b1916;
+  --line: #2e2a24;
+  --text: #ece7dc;
+  --muted: #9a9183;
+  --accent: #d4a056;
+  --ok: #7dba6a;
+  --bad: #c45c4a;
+  --warn: #c9a227;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.45 "Segoe UI", system-ui, sans-serif;
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  padding: 28px 32px 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.kicker {
+  margin: 0 0 4px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+h2 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 32px 64px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 18px 20px 20px;
+  margin-top: 16px;
+}
+
+textarea,
+input,
+select,
+button {
+  font: inherit;
+  color: var(--text);
+}
+
+textarea,
+input,
+select {
+  background: #12100d;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  width: 100%;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 140px;
+}
+
+.row {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.row.between {
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0;
+}
+
+.row.gap {
+  margin-top: 0;
+}
+
+.grow {
+  flex: 1;
+  min-width: 180px;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+button {
+  background: #2a261f;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+button.primary {
+  background: var(--accent);
+  color: #1a1408;
+  border-color: transparent;
+  font-weight: 600;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+button.ghost {
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.health {
+  display: flex;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.health li {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.health li.ok {
+  color: var(--ok);
+  border-color: #35552c;
+}
+
+.health li.bad {
+  color: var(--bad);
+  border-color: #5a332c;
+}
+
+.status {
+  margin: 8px 0 0;
+  color: var(--accent);
+}
+
+.status.error {
+  color: var(--bad);
+}
+
+.bible {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.scenes {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.scene {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+  background: #151310;
+}
+
+.scene header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.scene h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.clips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.clips a,
+.clips span {
+  color: var(--text);
+  text-decoration: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+video {
+  width: 100%;
+  margin-top: 14px;
+  border-radius: 10px;
+  background: #000;
+}
+
+.empty {
+  color: var(--muted);
+}

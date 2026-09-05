@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>videomake</title>
+    <link rel="stylesheet" href="/app.css" />
+  </head>
+  <body>
+    <header class="top">
+      <div>
+        <p class="kicker">локально · 18+ · без облака</p>
+        <h1>videomake</h1>
+      </div>
+      <ul class="health" id="health">
+        <li data-key="ollama">Ollama</li>
+        <li data-key="comfyui">ComfyUI</li>
+        <li data-key="ffmpeg">ffmpeg</li>
+      </ul>
+    </header>
+
+    <main>
+      <section class="panel">
+        <h2>1. Сценарий</h2>
+        <textarea id="script" rows="8" placeholder="Текст или сюжет. Только взрослые персонажи."></textarea>
+        <div class="row">
+          <label>
+            Сцен
+            <select id="sceneCount">
+              <option>4</option>
+              <option selected>5</option>
+              <option>6</option>
+              <option>7</option>
+              <option>8</option>
+            </select>
+          </label>
+          <label class="grow">
+            Модель Ollama
+            <input id="model" type="text" value="dolphin-llama3" />
+          </label>
+          <button id="splitBtn" type="button">Разрезать на сцены</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="row between">
+          <h2>2. Сцены</h2>
+          <div class="row gap">
+            <button id="genAllBtn" type="button" class="primary" disabled>Сгенерировать все</button>
+            <button id="stitchBtn" type="button" disabled>Склеить</button>
+          </div>
+        </div>
+        <p class="status" id="status" hidden></p>
+        <p id="bible" class="bible" hidden></p>
+        <div id="scenes" class="scenes"></div>
+      </section>
+
+      <section class="panel">
+        <h2>3. Результат</h2>
+        <div id="clips" class="clips"></div>
+        <video id="player" controls hidden></video>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
