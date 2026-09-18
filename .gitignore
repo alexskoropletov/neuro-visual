@@ -1,14 +1,35 @@
+# Secrets / local env (keep .env.example in the repo)
+.env
+.env.*
+!.env.example
+
+# Python
 .venv/
 __pycache__/
 *.pyc
-.env
-*.mp4
-*.webm
-*.webp
-*.mkv
-output/scenes.json
-output/scenes/*
-!output/scenes/.gitkeep
+
+# Editor / local tooling
+.cursor/
 .run/
+
+# Heavy local installs (not part of this repo)
 ComfyUI/
 models/
+
+# Generated video (clips / finals) if dropped outside output/
+*.mp4
+*.webm
+*.mkv
+
+# App runtime: scripts, refs, clips, projects, drafts
+# Keep only empty folder placeholders via .gitkeep
+output/*
+!output/scenes/
+!output/projects/
+!output/templates/
+output/scenes/*
+!output/scenes/.gitkeep
+output/projects/*
+!output/projects/.gitkeep
+output/templates/*
+!output/templates/.gitkeep

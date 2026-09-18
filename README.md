@@ -5,9 +5,11 @@
 Локальный UI оркестрирует пайплайн. Генерация кадров по-прежнему идёт в ComfyUI.
 
 ```text
-текст → локальный LLM (Ollama) → промпты сцен
-      → ComfyUI + Wan 2.2 TI2V-5B → клипы
-      → ffmpeg → видео
+текст (RU) → Ollama qwen (EN + детали)
+      → Ollama dolphin → промпты сцен
+      → Leonardo → референс-кадр на сцену
+      → ComfyUI + Wan 2.2 (I2V) → клип в карточке сцены
+      → ffmpeg → final.mp4
 ```
 
 ## Ограничения
@@ -33,7 +35,8 @@
 1. Поставить ComfyUI и веса Wan 2.2 TI2V-5B — [docs/003-setup-comfyui.md](docs/003-setup-comfyui.md).
 2. Поставить [Ollama](https://ollama.com/download) и модель без встроенного отказа, например `dolphin-llama3`.
 3. Поставить `ffmpeg`.
-4. Поднять весь стек одной командой (Ollama, ComfyUI, UI):
+4. Скопировать `.env.example` → `.env` и заполнить URL/ключи (`LEONARDO_API_KEY` и т.д.). Файл `.env` в git не коммитится.
+5. Поднять весь стек одной командой (Ollama, ComfyUI, UI):
 
    ```bash
    make
@@ -47,9 +50,11 @@
 
    Только UI, если сервисы уже запущены: `python3 ui/server.py`.
 
+Результаты работы (сценарии, Leonardo-референсы, клипы, `final.mp4`) лежат в `output/` и в репозиторий не попадают.
+
 CLI без UI по-прежнему работает: `scripts/split_scenes.py`, ComfyUI workflow, `scripts/stitch.sh`.
 
-Подробный цикл: [docs/004-pipeline.md](docs/004-pipeline.md). Архитектура: [docs/002-architecture.md](docs/002-architecture.md). Исходные ссылки: [docs/001-links.md](docs/001-links.md).
+Подробный цикл: [docs/004-pipeline.md](docs/004-pipeline.md). Архитектура: [docs/002-architecture.md](docs/002-architecture.md). Inference на LAN (`.188`): [docs/005-lan-gpu-host.md](docs/005-lan-gpu-host.md). Проекты / шаблоны / референсы: [docs/006-roadmap-projects.md](docs/006-roadmap-projects.md). Исходные ссылки: [docs/001-links.md](docs/001-links.md).
 
 ## Что в репозитории
 
@@ -59,7 +64,8 @@ CLI без UI по-прежнему работает: `scripts/split_scenes.py`,
 | `ui/` | Локальный веб-UI (`python3 ui/server.py`) |
 | `docs/` | Цель, установка, пайплайн |
 | `workflows/wan22-ti2v-5b.json` | ComfyUI workflow на базе официального шаблона Wan 2.2 5B |
-| `scripts/split_scenes.py` | Нарезка текста на сцены через локальный Ollama |
-| `scripts/stitch.sh` | Склейка клипов ffmpeg |
+| `scripts/split_scenes.py` | Qwen (RU→EN+детали) → Dolphin (нарезка сцен) |
+| `scripts/stitch.py` | Склейка клипов ffmpeg (Windows/macOS/Linux) |
+| `scripts/stitch.sh` | То же для bash/Linux |
 
 Вне скоупа: поставка LoRA, озвучка и субтитры.

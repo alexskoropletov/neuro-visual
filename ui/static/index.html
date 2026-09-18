@@ -4,64 +4,257 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>videomake</title>
-    <link rel="stylesheet" href="/app.css" />
+    <link rel="stylesheet" href="/app.css?v=18" />
   </head>
   <body>
     <header class="top">
       <div>
-        <p class="kicker">локально · 18+ · без облака</p>
+        <p class="kicker">Ollama → Leonardo → ComfyUI Wan</p>
         <h1>videomake</h1>
       </div>
       <ul class="health" id="health">
         <li data-key="ollama">Ollama</li>
+        <li data-key="leonardo">Leonardo</li>
         <li data-key="comfyui">ComfyUI</li>
         <li data-key="ffmpeg">ffmpeg</li>
       </ul>
     </header>
 
     <main>
-      <section class="panel">
-        <h2>1. Сценарий</h2>
-        <textarea id="script" rows="8" placeholder="Текст или сюжет. Только взрослые персонажи."></textarea>
-        <div class="row">
-          <label>
-            Сцен
-            <select id="sceneCount">
-              <option>4</option>
-              <option selected>5</option>
-              <option>6</option>
-              <option>7</option>
-              <option>8</option>
-            </select>
-          </label>
-          <label class="grow">
-            Модель Ollama
-            <input id="model" type="text" value="dolphin-llama3" />
-          </label>
-          <button id="splitBtn" type="button">Разрезать на сцены</button>
-        </div>
-      </section>
+      <p class="status" id="status" hidden>
+        <span class="spinner" aria-hidden="true"></span>
+        <span id="statusText"></span>
+      </p>
 
-      <section class="panel">
-        <div class="row between">
-          <h2>2. Сцены</h2>
-          <div class="row gap">
-            <button id="genAllBtn" type="button" class="primary" disabled>Сгенерировать все</button>
-            <button id="stitchBtn" type="button" disabled>Склеить</button>
+      <details class="panel panel-fold" id="panelProject" open>
+        <summary class="panel-summary"><span class="panel-title">Проект</span></summary>
+        <div class="panel-body">
+          <div class="row">
+            <label class="grow">
+              Версия
+              <select id="projectSelect"></select>
+            </label>
+            <button id="newProjectBtn" type="button">Новый проект</button>
+          </div>
+          <p class="field-hint" id="projectHint">Папка: output/projects/…</p>
+        </div>
+      </details>
+
+      <details class="panel panel-fold" id="panelScript" open>
+        <summary class="panel-summary"><span class="panel-title">1. Сценарий</span></summary>
+        <div class="panel-body">
+          <textarea id="script" rows="8" placeholder="Текст или сюжет. Только взрослые персонажи."></textarea>
+          <details class="settings" open>
+            <summary>Настройки нарезки</summary>
+            <div class="row settings-grid">
+              <label>
+                Сцен
+                <select id="sceneCount">
+                  <option>4</option>
+                  <option selected>5</option>
+                  <option>6</option>
+                  <option>7</option>
+                  <option>8</option>
+                </select>
+              </label>
+              <div class="grow pipeline-models">
+                <p class="shot-label">Пайплайн Ollama</p>
+                <p class="field-hint" id="modelHint">
+                  1) qwen — перевод RU→EN + детали · 2) dolphin — нарезка сцен
+                </p>
+                <p class="field-hint mono" id="modelPipeline"></p>
+              </div>
+            </div>
+          </details>
+          <div class="row">
+            <button id="splitBtn" type="button">
+              <span class="btn-spinner" aria-hidden="true"></span>
+              <span class="btn-label">Разрезать на сцены</span>
+            </button>
           </div>
         </div>
-        <p class="status" id="status" hidden></p>
-        <p id="bible" class="bible" hidden></p>
-        <div id="scenes" class="scenes"></div>
-      </section>
+      </details>
 
-      <section class="panel">
-        <h2>3. Результат</h2>
-        <div id="clips" class="clips"></div>
-        <video id="player" controls hidden></video>
-      </section>
+      <details class="panel panel-fold" id="panelScenes" open>
+        <summary class="panel-summary">
+          <span class="panel-title">2. Сцены</span>
+          <span class="panel-summary-actions" id="scenesSummaryActions">
+            <button id="leoAllBtn" type="button" disabled>Все референсы</button>
+            <button id="genAllBtn" type="button" class="primary" disabled>Сгенерировать всё</button>
+            <button id="genAllX5Btn" type="button" disabled title="Каждая ComfyUI-сцена — 5 takes подряд">Сгенерировать всё ×5</button>
+            <button id="genAllX10Btn" type="button" disabled title="Каждая ComfyUI-сцена — 10 takes подряд">Сгенерировать всё ×10</button>
+            <button id="cancelGenBtn" type="button" class="danger" disabled>Прервать</button>
+            <button id="stitchBtn" type="button" disabled>Склеить</button>
+          </span>
+        </summary>
+        <div class="panel-body">
+          <details class="settings" open>
+            <summary>Leonardo — модель референса</summary>
+            <div class="row settings-grid">
+              <label class="grow">
+                Модель
+                <select id="leoModel"></select>
+                <span class="field-hint" id="leoModelHint">Нужен LEONARDO_API_KEY в .env</span>
+              </label>
+            </div>
+          </details>
+
+          <details class="settings" open>
+            <summary>Настройки Wan / ComfyUI</summary>
+            <p class="muted wan-options-hint" id="wanOptionsHint">Параметры уходят в ComfyUI API</p>
+            <div class="row settings-grid">
+              <label>
+                Разрешение
+                <select id="wanPreset">
+                  <option value="640x360">640×360 (быстрее)</option>
+                  <option value="832x480" selected>832×480 (TI2V-5B default)</option>
+                  <option value="1024x576">1024×576</option>
+                  <option value="1280x704">1280×704 (качество)</option>
+                  <option value="custom">Своё…</option>
+                </select>
+              </label>
+              <label id="wanWidthWrap" hidden>
+                Ширина
+                <input id="wanWidth" type="number" min="256" max="1920" step="16" value="832" />
+              </label>
+              <label id="wanHeightWrap" hidden>
+                Высота
+                <input id="wanHeight" type="number" min="256" max="1080" step="16" value="480" />
+              </label>
+              <label>
+                Steps
+                <select id="wanSteps"></select>
+              </label>
+              <label>
+                CFG
+                <select id="wanCfg"></select>
+              </label>
+              <label>
+                Кадров (length)
+                <select id="wanLength"></select>
+              </label>
+              <label>
+                Shift
+                <select id="wanShift"></select>
+              </label>
+              <label>
+                Sampler
+                <select id="wanSampler"></select>
+              </label>
+              <label>
+                Scheduler
+                <select id="wanScheduler"></select>
+              </label>
+              <label>
+                Denoise
+                <select id="wanDenoise"></select>
+              </label>
+              <label>
+                FPS
+                <select id="wanFps"></select>
+              </label>
+              <label>
+                Seed
+                <input id="wanSeed" type="number" min="-1" step="1" value="-1" title="-1 = случайный каждый take" />
+              </label>
+              <label class="settings-span-2">
+                Diffusion model (UNET)
+                <select id="wanUnet"></select>
+              </label>
+              <label>
+                Weight dtype
+                <select id="wanDtype"></select>
+              </label>
+              <label class="settings-span-2">
+                CLIP (UMT5)
+                <select id="wanClip"></select>
+              </label>
+              <label class="settings-span-2">
+                VAE
+                <select id="wanVae"></select>
+              </label>
+            </div>
+          </details>
+
+          <details class="settings">
+            <summary>Шаблоны кадра</summary>
+            <div class="row">
+              <label class="grow">
+                Шаблон
+                <select id="templateSelect">
+                  <option value="">— выбрать —</option>
+                </select>
+              </label>
+              <button id="applyTemplateBtn" type="button">Применить ко всем</button>
+            </div>
+            <div class="row">
+              <label class="grow">
+                Имя нового шаблона
+                <input id="templateName" type="text" placeholder="например noir-closeup" />
+              </label>
+              <button id="saveTemplateBtn" type="button">Сохранить из 1-й сцены</button>
+              <button id="deleteTemplateBtn" type="button" class="ghost">Удалить</button>
+            </div>
+            <p class="field-hint">Шаблон хранит ракурс / свет / FOV / локацию / погоду / темы. Сохраняется из настроек первой сцены.</p>
+          </details>
+
+          <div id="worldWrap" class="bible-wrap">
+            <div class="bible-header">
+              <div>
+                <p class="shot-label">World / локация (весь проект)</p>
+                <p class="field-hint">
+                  Общий фон и биом для всех сцен (jungle, деревня, климат, палитра). Без этого модели свободно меняют локацию.
+                </p>
+              </div>
+            </div>
+            <label class="grow">
+              <textarea id="worldBible" rows="3" placeholder="Dense tropical jungle, thick green canopy, humid mist, muddy paths, mossy trunks — same jungle biome in every scene, no desert, no dunes"></textarea>
+            </label>
+          </div>
+
+          <div id="bibleWrap" class="bible-wrap" hidden>
+            <div class="bible-header">
+              <div>
+                <p class="shot-label">Character bible</p>
+                <p class="field-hint">Описание каждого персонажа для всего проекта. В сцену попадает только каст из visual prompt.</p>
+              </div>
+              <div class="row gap">
+                <button type="button" class="ghost" id="bibleAddBtn">+ Персонаж</button>
+                <button type="button" id="bibleSaveBtn">Сохранить</button>
+              </div>
+            </div>
+            <div id="bibleList" class="bible-list"></div>
+          </div>
+          <div id="scenes" class="scenes"></div>
+        </div>
+      </details>
+
+      <details class="panel panel-fold" id="panelFinal" open>
+        <summary class="panel-summary"><span class="panel-title">3. Финал</span></summary>
+        <div class="panel-body">
+          <details class="settings">
+            <summary>Настройки склейки</summary>
+            <p class="field-hint">H.264 24 fps, yuv420p, faststart. Клипы сцен смотрите в карточках выше.</p>
+          </details>
+          <div id="finalBox" class="final-box" hidden>
+            <h3>Склеенное видео</h3>
+            <video id="player" controls></video>
+            <a id="finalDownload" class="download" href="/api/media/final.mp4" download="final.mp4">Скачать final.mp4</a>
+          </div>
+          <p id="finalEmpty" class="empty">Пока нет final.mp4 — сгенерируйте видео сцен и нажмите «Склеить».</p>
+        </div>
+      </details>
     </main>
 
-    <script src="/app.js"></script>
+    <div id="lightbox" class="lightbox" hidden>
+      <button type="button" class="lightbox-backdrop" aria-label="Закрыть"></button>
+      <div class="lightbox-dialog" role="dialog" aria-modal="true" aria-label="Просмотр">
+        <button type="button" class="lightbox-close" id="lightboxClose" aria-label="Закрыть">×</button>
+        <img id="lightboxImg" class="lightbox-media" alt="" hidden />
+        <video id="lightboxVideo" class="lightbox-media" controls playsinline hidden></video>
+      </div>
+    </div>
+
+    <script src="/app.js?v=18"></script>
   </body>
 </html>

@@ -21,8 +21,11 @@ help:
 	@echo "make check    python3 / ffmpeg / ollama / ComfyUI"
 	@echo "make ui       только интерфейс"
 	@echo
-	@echo "COMFYUI_DIR  путь к клону ComfyUI, если не ./ComfyUI, ../ComfyUI или ~/ComfyUI"
-	@echo "OLLAMA_MODEL модель для нарезки сцен (по умолчанию dolphin-llama3)"
+	@echo "COMFYUI_DIR   путь к клону ComfyUI (локальный старт)"
+	@echo "COMFYUI_URL   URL ComfyUI (по умолчанию из .env / localhost)"
+	@echo "OLLAMA_HOST   URL Ollama"
+	@echo "OLLAMA_MODEL  модель для нарезки сцен"
+	@echo "VIDEOMAKE_REMOTE=1  не стартовать локальные Ollama/ComfyUI"
 
 up:
 	@$(STACK) up

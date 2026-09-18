@@ -17,6 +17,7 @@ fi
 
 mapfile -t CLIPS < <(find "$CLIPS_DIR" -maxdepth 1 -type f \
   \( -iname 'scene-*.mp4' -o -iname 'scene-*.webm' -o -iname 'scene-*.mkv' -o -iname 'scene-*.mov' \) \
+  | grep -E '/scene-[0-9]+\.(mp4|webm|mkv|mov)$' \
   | sort)
 
 if [[ ${#CLIPS[@]} -eq 0 ]]; then

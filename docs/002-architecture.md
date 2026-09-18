@@ -30,9 +30,18 @@ Wan выдаёт короткие клипы (секунды, не минуты)
 
 ## Данные на диске
 
-- `output/scenes.json` — список сцен после нарезки
-- `output/scenes/` — клипы (`scene-01.webm`, …)
-- `output/final.mp4` — склейка
+```text
+output/projects/<YYYYMMDD-HHMMSS>/
+  meta.json      # сценарий, title, created_at
+  scenes.json    # сцены, wan, shot
+  scenes/        # scene-01.webm …
+  refs/          # scene-01.jpg … (Leonardo / upload)
+  final.mp4
+output/templates/*.json   # шаблоны кадра
+output/current_project.json
+```
+
+Воркфлоу: Ollama → Leonardo refs → ComfyUI I2V → ffmpeg. План: [006-roadmap-projects.md](006-roadmap-projects.md).
 
 Веса моделей лежат в каталогах ComfyUI, не в этом репозитории.
 

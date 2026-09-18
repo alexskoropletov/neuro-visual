@@ -18,17 +18,20 @@ make
 
 ## 2. Нарезка сцен (Ollama)
 
-Нужны [Ollama](https://ollama.com/download) и модель без встроенного отказа:
+Нужны [Ollama](https://ollama.com/download) и две модели:
 
 ```bash
-ollama pull dolphin-llama3
+ollama pull qwen3.8:27b      # RU→EN + расширение деталей
+ollama pull dolphin-llama3  # нарезка на сцены (uncensor)
 ```
+
+Пайплайн: русский сценарий → **qwen** (перевод + детали одежды/внешности/материалов) → **dolphin** (JSON сцен).
 
 ```bash
 python3 scripts/split_scenes.py --input script.txt --output scenes.json
 ```
 
-Полезные флаги: `--model`, `--scenes 6` (диапазон 4–8), `--host http://127.0.0.1:11434`.
+Полезные флаги: `--expand-model`, `--split-model`, `--scenes 6` (4–8), `--skip-expand` (если текст уже EN), `--host http://127.0.0.1:11434`.
 
 Выход — JSON:
 

@@ -4,10 +4,35 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RUN="$ROOT/.run"
+
+if [[ -f "$ROOT/.env" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "$ROOT/.env"
+  set +a
+fi
+
 OLLAMA_HOST="${OLLAMA_HOST:-http://127.0.0.1:11434}"
 COMFYUI_URL="${COMFYUI_URL:-http://127.0.0.1:8188}"
 UI_URL="http://${VIDEOMAKE_HOST:-127.0.0.1}:${VIDEOMAKE_PORT:-8765}"
-OLLAMA_MODEL="${OLLAMA_MODEL:-dolphin-llama3}"
+OLLAMA_EXPAND_MODEL="${OLLAMA_EXPAND_MODEL:-${OLLAMA_MODEL:-qwen3.8:27b}}"
+OLLAMA_SPLIT_MODEL="${OLLAMA_SPLIT_MODEL:-dolphin-llama3}"
+OLLAMA_MODEL="${OLLAMA_MODEL:-$OLLAMA_EXPAND_MODEL}"
+VIDEOMAKE_REMOTE="${VIDEOMAKE_REMOTE:-0}"
+
+is_loopback_url() {
+  case "$1" in
+    http://127.0.0.1:*|http://localhost:*|https://127.0.0.1:*|https://localhost:*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+remote_mode() {
+  [[ "$VIDEOMAKE_REMOTE" == "1" || "$VIDEOMAKE_REMOTE" == "true" ]] && return 0
+  ! is_loopback_url "$OLLAMA_HOST" && return 0
+  ! is_loopback_url "$COMFYUI_URL" && return 0
+  return 1
+}
 
 mkdir -p "$RUN" "$ROOT/output/scenes"
 
@@ -76,8 +101,12 @@ comfy_python() {
 
 start_ollama() {
   if alive "$OLLAMA_HOST/api/tags"; then
-    echo "Ollama уже запущен"
+    echo "Ollama уже запущен ($OLLAMA_HOST)"
     return 0
+  fi
+  if remote_mode || ! is_loopback_url "$OLLAMA_HOST"; then
+    echo "Ollama недоступен: $OLLAMA_HOST (remote — запусти на GPU-хосте)" >&2
+    return 1
   fi
   if ! command -v ollama >/dev/null; then
     echo "Нет ollama в PATH. https://ollama.com/download" >&2
@@ -90,19 +119,32 @@ start_ollama() {
 }
 
 ensure_model() {
-  command -v ollama >/dev/null || return 0
-  if ollama list 2>/dev/null | awk 'NR>1 {print $1}' | grep -Eq "^${OLLAMA_MODEL}(:|$)"; then
-    echo "Модель $OLLAMA_MODEL есть"
+  local models=("$OLLAMA_EXPAND_MODEL" "$OLLAMA_SPLIT_MODEL")
+  local m
+  if remote_mode || ! is_loopback_url "$OLLAMA_HOST"; then
+    echo "Модели: expand=$OLLAMA_EXPAND_MODEL split=$OLLAMA_SPLIT_MODEL (remote — pull на GPU-хосте)"
     return 0
   fi
-  echo "Качаю $OLLAMA_MODEL…"
-  ollama pull "$OLLAMA_MODEL"
+  command -v ollama >/dev/null || return 0
+  for m in "${models[@]}"; do
+    [ -n "$m" ] || continue
+    if ollama list 2>/dev/null | awk 'NR>1 {print $1}' | grep -Eq "^${m}(:|$)"; then
+      echo "Модель $m есть"
+      continue
+    fi
+    echo "Качаю $m…"
+    ollama pull "$m"
+  done
 }
 
 start_comfy() {
   if alive "$COMFYUI_URL/system_stats" || alive "$COMFYUI_URL/"; then
-    echo "ComfyUI уже запущен"
+    echo "ComfyUI уже запущен ($COMFYUI_URL)"
     return 0
+  fi
+  if remote_mode || ! is_loopback_url "$COMFYUI_URL"; then
+    echo "ComfyUI недоступен: $COMFYUI_URL (remote — запусти на GPU-хосте)" >&2
+    return 1
   fi
   local dir py
   if ! dir="$(find_comfy)"; then
@@ -141,13 +183,25 @@ cmd_check() {
   local ok=0
   command -v python3 >/dev/null && echo "python3: ok" || { echo "python3: нет"; ok=1; }
   command -v ffmpeg >/dev/null && echo "ffmpeg: ok" || { echo "ffmpeg: нет (нужен для склейки)"; ok=1; }
-  command -v ollama >/dev/null && echo "ollama: ok" || { echo "ollama: нет"; ok=1; }
   command -v curl >/dev/null && echo "curl: ok" || { echo "curl: нет"; ok=1; }
-  if find_comfy >/dev/null; then
-    echo "ComfyUI: $(find_comfy)"
+  if alive "$OLLAMA_HOST/api/tags"; then
+    echo "Ollama: up ($OLLAMA_HOST)"
   else
-    echo "ComfyUI: не найден (COMFYUI_DIR)"
+    echo "Ollama: down ($OLLAMA_HOST)"
     ok=1
+  fi
+  if alive "$COMFYUI_URL/system_stats" || alive "$COMFYUI_URL/"; then
+    echo "ComfyUI: up ($COMFYUI_URL)"
+  else
+    echo "ComfyUI: down ($COMFYUI_URL)"
+    ok=1
+  fi
+  if remote_mode; then
+    echo "режим: remote (локальный ComfyUI/Ollama не стартуем)"
+  elif find_comfy >/dev/null; then
+    echo "ComfyUI dir: $(find_comfy)"
+  else
+    echo "ComfyUI dir: не найден (COMFYUI_DIR) — нужен только для локального старта"
   fi
   return "$ok"
 }
